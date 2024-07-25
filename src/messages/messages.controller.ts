@@ -1,16 +1,17 @@
-import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { CreateMessageDto } from './dtos/create-message.dto';
-import { MessagesService } from './messages.servise';
+import { MessagesService } from './messages.service';
 
 @Controller('messages')
 export class MessagesController {
-  messagesService: MessagesService;
-
-  constructor() {
-    // DON'T DO THIS IN REAL APPS
-    // USE DEPENDENCY INJECTION
-    this.messagesService = new MessagesService();
-  }
+  constructor(public messagesService: MessagesService) {}
 
   @Get()
   listMessages() {
@@ -23,7 +24,13 @@ export class MessagesController {
   }
 
   @Get('/:id')
-  getMessage(@Param('id') id: string) {
-    return this.messagesService.findOne(id);
+  async getMessage(@Param('id') id: string) {
+    const message = await this.messagesService.findOne(id);
+
+    if (!message) {
+      throw new NotFoundException('message not found');
+    }
+
+    return message;
   }
 }
